@@ -1,0 +1,104 @@
+<?jelly escape-by-default='true'?>
+<!--
+  Config page
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form">
+
+  <f:entry title="${%Host Name}" field="HostName">
+    <select class="setting-input" name="hostName" value="${instance.hostName}">
+      <option>Select host...</option>
+      <j:forEach var="d" items="${descriptor.hosts}">
+        <option selected="${d.displayName==it.hostName?'true':null}">
+          ${d.displayName}
+        </option>
+      </j:forEach>
+    </select>
+  </f:entry>
+
+  <f:entry title="${%Virtual Machine Name}" field="VirtualMachineName">
+    <f:select />
+  </f:entry>
+
+  <f:entry title="${%Virtual Machine Type}" field="virtualMachineType">
+    <select class="setting-input" name="virtualMachineType" value="${it.virtualMachineType}">
+      <f:option value="headless" selected="${it.virtualMachineType == 'headless'}">headless</f:option>
+      <f:option value="vrdp" selected="${it.virtualMachineType == 'vrdp'}">vrdp</f:option>
+      <f:option value="gui" selected="${it.virtualMachineType == 'gui'}">gui</f:option>
+      <f:option value="sdl" selected="${it.virtualMachineType == 'sdl'}">sdl</f:option>
+    </select>
+  </f:entry>
+
+  <f:entry title="${%Virtual Machine Stop Mode}" field="virtualMachineStopMode">
+    <select class="setting-input" name="virtualMachineStopMode" value="${it.virtualMachineStopMode}">
+      <f:option value="save" selected="${it.virtualMachineStopMode == 'save'}">save</f:option>
+      <f:option value="powerdown" selected="${it.virtualMachineStopMode == 'powerdown'}">powerdown</f:option>
+    </select>
+  </f:entry>
+
+  <!-- Copied from /hudson/slaves/DumbSlave/configure-entries.jelly : -->
+
+  <f:entry title="${%Description}" help="/help/system-config/master-slave/description.html">
+    <f:textbox field="nodeDescription"/>
+  </f:entry>
+
+  <f:entry title="${%# of executors}" field="numExecutors">
+    <f:textbox/>
+  </f:entry>
+
+  <f:entry title="${%Remote FS root}" field="remoteFS">
+    <f:textbox/>
+  </f:entry>
+
+  <f:entry title="${%Labels}" field="labelString">
+    <f:textbox/>
+  </f:entry>
+
+  <f:slave-mode name="mode" node="${it}"/>
+
+  <!-- "launcher" changed to "delegateLauncher" -->
+  <f:dropdownList name="slave.delegateLauncher" title="${%Secondary launch method}"
+                  help="${descriptor.getHelpFile('launcher')}">
+    <j:forEach var="d" items="${h.getComputerLauncherDescriptors()}" varStatus="loop">
+      <f:dropdownListBlock value="${d.clazz.name}" name="${d.displayName}"
+                           selected="${it.delegateLauncher.descriptor==d}"
+                           title="${d.displayName}">
+        <j:set var="descriptor" value="${d}"/>
+        <j:set var="instance"
+               value="${it.delegateLauncher.descriptor==d ? it.delegateLauncher : null}"/>
+        <tr>
+          <td>
+            <input type="hidden" name="stapler-class" value="${d.clazz.name}"/>
+          </td>
+        </tr>
+        <st:include from="${d}" page="${d.configPage}" optional="true"/>
+      </f:dropdownListBlock>
+    </j:forEach>
+  </f:dropdownList>
+
+  <!-- pointless to show this if there's only one option, which is the default -->
+  <j:if test="${h.getRetentionStrategyDescriptors().size() gt 1}">
+    <f:dropdownList name="slave.retentionStrategy" title="${%Availability}"
+                    help="/help/system-config/master-slave/availability.html">
+      <j:forEach var="d" items="${h.getRetentionStrategyDescriptors()}">
+        <j:if test="${d != null}">
+          <f:dropdownListBlock value="${d.clazz.name}" name="${d.displayName}"
+                               selected="${it.retentionStrategy.descriptor==d}"
+                               title="${d.displayName}">
+            <j:set var="descriptor" value="${d}"/>
+            <j:set var="instance"
+                   value="${it.retentionStrategy.descriptor==d ? it.retentionStrategy : null}"/>
+            <tr>
+              <td>
+                <input type="hidden" name="stapler-class" value="${d.clazz.name}"/>
+              </td>
+            </tr>
+            <st:include from="${d}" page="${d.configPage}" optional="true"/>
+          </f:dropdownListBlock>
+        </j:if>
+      </j:forEach>
+    </f:dropdownList>
+  </j:if>
+
+  <f:descriptorList title="${%Node Properties}" descriptors="${h.getNodePropertyDescriptors(descriptor.clazz)}"
+                    field="nodeProperties"/>
+</j:jelly>

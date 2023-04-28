@@ -1,0 +1,6 @@
+<?jelly escape-by-default='true'?>
+<div>
+  This plugin integrates Jenkins with
+  <a href="http://www.virtualbox.org/">VirtualBox</a>
+  virtual machine.
+</div>
